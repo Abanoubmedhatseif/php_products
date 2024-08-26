@@ -6,9 +6,9 @@ class ProductManager {
     private $database;
 
     public function __construct() {
-        // $this->database = new Database('sql204.infinityfree.com', 'if0_36961745', 'CRVm5rDQF81fuBx', 'if0_36961745_products_data');
+        $this->database = new Database('sql204.infinityfree.com', 'if0_36961745', 'CRVm5rDQF81fuBx', 'if0_36961745_products_data');
 
-        $this->database = new Database('localhost', 'root', 'abanoub', 'php_task_scandiweb');
+        // $this->database = new Database('localhost', 'root', 'abanoub', 'php_task_scandiweb');
     }
 
     public function addProduct(Product $product) {

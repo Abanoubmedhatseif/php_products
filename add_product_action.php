@@ -1,5 +1,4 @@
 <?php
-
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -12,7 +11,6 @@ header('Content-Type: application/json');
 Include_once 'ProductManager.php';
 require_once 'Product.php';
 
-// ProductFactory to create products dynamically based on type
 class ProductFactory {
     public static function createProduct($data) {
         $className = $data['type'];

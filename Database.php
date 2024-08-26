@@ -99,13 +99,12 @@ class Database {
             }
         ];
         
-        // Fetch and process rows
         $products = [];
         while ($row = $result->fetch_assoc()) {
             $type = $row['type'];
                 $products[] = $typeToConstructor[$type]($row);
         }
-        
+
 
         return $products;
     }
