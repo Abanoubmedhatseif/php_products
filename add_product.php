@@ -35,13 +35,10 @@
         </select>
         <div id="type-error" class="error-message" style="color: red;"></div>
         
-        <div id="product-specific-fields">
-            <!-- Specific fields based on product type will be displayed here -->
-        </div>
+        <div id="product-specific-fields"></div>
     </form>
 
     <script>
-        // Function to parse URL parameters
         function getQueryParams() {
             const params = {};
             window.location.search.substring(1).split('&').forEach(function(part) {
@@ -51,30 +48,40 @@
             return params;
         }
 
-        // Function to display error message if available
         function displayError() {
             const params = getQueryParams();
             if (params.error) {
                 document.getElementById('sku-error').innerText = 'SKU already exists';
-                isValid = false;
             }
         }
 
-        // Initialize the error display
         displayError();
 
-        const productTypeFields = {
-            'Book': '<label for="weight">Weight (kg)</label><input type="number" id="weight" name="weight" step="0.01" required><div id="weight-error" class="error-message" style="color: red;"></div>',
-            'DVD': '<label for="size">Size (MB)</label><input type="number" id="size" name="size" required><div id="size-error" class="error-message" style="color: red;"></div>',
-            'Furniture': '<label for="length">Length (cm)</label><input type="number" id="length" name="length" required><div id="length-error" class="error-message" style="color: red;"></div>' +
-                         '<label for="width">Width (cm)</label><input type="number" id="width" name="width" required><div id="width-error" class="error-message" style="color: red;"></div>' +
-                         '<label for="height">Height (cm)</label><input type="number" id="height" name="height" required><div id="height-error" class="error-message" style="color: red;"></div>'
+        const productTypeConfig = {
+            'Book': {
+                fields: '<label for="weight">Weight (kg)</label><input type="number" id="weight" name="weight" step="0.01" required><div id="weight-error" class="error-message" style="color: red;"></div>',
+                validate: () => document.getElementById('weight')?.value.trim() !== ''
+            },
+            'DVD': {
+                fields: '<label for="size">Size (MB)</label><input type="number" id="size" name="size" required><div id="size-error" class="error-message" style="color: red;"></div>',
+                validate: () => document.getElementById('size')?.value.trim() !== ''
+            },
+            'Furniture': {
+                fields: '<label for="length">Length (cm)</label><input type="number" id="length" name="length" required><div id="length-error" class="error-message" style="color: red;"></div>' +
+                        '<label for="width">Width (cm)</label><input type="number" id="width" name="width" required><div id="width-error" class="error-message" style="color: red;"></div>' +
+                        '<label for="height">Height (cm)</label><input type="number" id="height" name="height" required><div id="height-error" class="error-message" style="color: red;"></div>',
+                validate: () => 
+                    document.getElementById('length')?.value.trim() !== '' &&
+                    document.getElementById('width')?.value.trim() !== '' &&
+                    document.getElementById('height')?.value.trim() !== ''
+            }
         };
 
         document.getElementById('productType').addEventListener('change', function() {
             const type = this.value;
+            const config = productTypeConfig[type];
             const fieldsContainer = document.getElementById('product-specific-fields');
-            fieldsContainer.innerHTML = productTypeFields[type] || '';
+            fieldsContainer.innerHTML = config ? config.fields : '';
         });
 
         function validateForm() {
@@ -103,14 +110,19 @@
             if (!type) {
                 document.getElementById('type-error').innerText = 'Please select a product type.';
                 isValid = false;
-            } else {
-                const specificFields = fieldsContainer.querySelectorAll('input');
-                specificFields.forEach(field => {
-                    if (!field.value.trim()) {
-                        document.getElementById(`${field.id}-error`).innerText = `Please provide the ${field.previousElementSibling.innerText.toLowerCase()}.`;
-                        isValid = false;
-                    }
-                });
+            }
+
+            const config = productTypeConfig[type];
+            if (config) {
+                isValid = config.validate();
+                if (!isValid) {
+                    const specificFields = fieldsContainer.querySelectorAll('input');
+                    specificFields.forEach(field => {
+                        if (!field.value.trim()) {
+                            document.getElementById(`${field.id}-error`).innerText = `Please provide the ${field.previousElementSibling.innerText.toLowerCase()}.`;
+                        }
+                    });
+                }
             }
 
             if (isValid) {
