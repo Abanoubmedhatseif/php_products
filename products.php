@@ -29,17 +29,18 @@
                         echo '<p>Price: $' . htmlspecialchars($product->getPrice()) . '</p>';
                         echo '<p>SKU: ' . htmlspecialchars($product->getSku()) . '</p>';
                         echo '<p>Type: ' . htmlspecialchars($product->getType()) . '</p>';
-                        switch ($product->getType()) {
-                            case 'Book':
-                                echo '<p>Weight: ' . htmlspecialchars($product->getWeight()) . ' kg</p>';
-                                break;
-                            case 'DVD':
-                                echo '<p>Size: ' . htmlspecialchars($product->getSize()) . ' MB</p>';
-                                break;
-                            case 'Furniture':
-                                echo '<p>Dimensions: ' . htmlspecialchars($product->getLength()) . 'x' . htmlspecialchars($product->getWidth()) . 'x' . htmlspecialchars($product->getHeight()) . ' cm</p>';
-                                break;
-                        }
+                        // switch ($product->getType()) {
+                        //     case 'Book':
+                        //         echo '<p>Weight: ' . htmlspecialchars($product->getWeight()) . ' kg</p>';
+                        //         break;
+                        //     case 'DVD':
+                        //         echo '<p>Size: ' . htmlspecialchars($product->getSize()) . ' MB</p>';
+                        //         break;
+                        //     case 'Furniture':
+                        //         echo '<p>Dimensions: ' . htmlspecialchars($product->getLength()) . 'x' . htmlspecialchars($product->getWidth()) . 'x' . htmlspecialchars($product->getHeight()) . ' cm</p>';
+                        //         break;
+                        // }
+                        echo $product->getSpecificFields();
                         echo '</div>';
                     }
                 }

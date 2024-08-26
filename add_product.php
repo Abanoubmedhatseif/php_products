@@ -59,69 +59,77 @@
 
         const productTypeConfig = {
             'Book': {
-                fields: '<label for="weight">Weight (kg)</label><input type="number" id="weight" name="weight" step="0.01" required><div id="weight-error" class="error-message" style="color: red;"></div>',
-                validate: () => document.getElementById('weight')?.value.trim() !== ''
+                fields: [
+                    { id: 'weight', label: 'Weight (kg)', type: 'number', step: '0.01' }
+                ],
+                validate: () => checkFields(['weight'])
             },
             'DVD': {
-                fields: '<label for="size">Size (MB)</label><input type="number" id="size" name="size" required><div id="size-error" class="error-message" style="color: red;"></div>',
-                validate: () => document.getElementById('size')?.value.trim() !== ''
+                fields: [
+                    { id: 'size', label: 'Size (MB)', type: 'number' }
+                ],
+                validate: () => checkFields(['size'])
             },
             'Furniture': {
-                fields: '<label for="length">Length (cm)</label><input type="number" id="length" name="length" required><div id="length-error" class="error-message" style="color: red;"></div>' +
-                        '<label for="width">Width (cm)</label><input type="number" id="width" name="width" required><div id="width-error" class="error-message" style="color: red;"></div>' +
-                        '<label for="height">Height (cm)</label><input type="number" id="height" name="height" required><div id="height-error" class="error-message" style="color: red;"></div>',
-                validate: () => 
-                    document.getElementById('length')?.value.trim() !== '' &&
-                    document.getElementById('width')?.value.trim() !== '' &&
-                    document.getElementById('height')?.value.trim() !== ''
+                fields: [
+                    { id: 'length', label: 'Length (cm)', type: 'number' },
+                    { id: 'width', label: 'Width (cm)', type: 'number' },
+                    { id: 'height', label: 'Height (cm)', type: 'number' }
+                ],
+                validate: () => checkFields(['length', 'width', 'height'])
             }
         };
 
-        document.getElementById('productType').addEventListener('change', function() {
-            const type = this.value;
+        function renderFields(type) {
             const config = productTypeConfig[type];
             const fieldsContainer = document.getElementById('product-specific-fields');
-            fieldsContainer.innerHTML = config ? config.fields : '';
+            if (!config) return;
+
+            fieldsContainer.innerHTML = config.fields.map(field => `
+                <label for="${field.id}">${field.label}</label>
+                <input type="${field.type}" id="${field.id}" name="${field.id}" ${field.step ? `step="${field.step}"` : ''} required>
+                <div id="${field.id}-error" class="error-message" style="color: red;"></div>
+            `).join('');
+        }
+
+        document.getElementById('productType').addEventListener('change', function() {
+            renderFields(this.value);
         });
+
+        function checkFields(fields) {
+            let isValid = true;
+            fields.forEach(field => {
+                const fieldValue = document.getElementById(field)?.value.trim();
+                if (!fieldValue) {
+                    document.getElementById(`${field}-error`).innerText = `Please provide the ${field}.`;
+                    isValid = false;
+                }
+            });
+            return isValid;
+        }
 
         function validateForm() {
             const form = document.getElementById('product_form');
-            const sku = document.getElementById('sku').value.trim();
-            const name = document.getElementById('name').value.trim();
-            const price = document.getElementById('price').value.trim();
-            const type = document.getElementById('productType').value;
-            const fieldsContainer = document.getElementById('product-specific-fields');
+            const requiredFields = ['sku', 'name', 'price'];
             let isValid = true;
 
             document.querySelectorAll('.error-message').forEach(el => el.innerText = '');
 
-            if (!sku) {
-                document.getElementById('sku-error').innerText = 'Please provide the SKU.';
-                isValid = false;
-            }
-            if (!name) {
-                document.getElementById('name-error').innerText = 'Please provide the product name.';
-                isValid = false;
-            }
-            if (!price) {
-                document.getElementById('price-error').innerText = 'Please provide the price.';
-                isValid = false;
-            }
+            requiredFields.forEach(field => {
+                if (!document.getElementById(field).value.trim()) {
+                    document.getElementById(`${field}-error`).innerText = `Please provide the ${field}.`;
+                    isValid = false;
+                }
+            });
+
+            const type = document.getElementById('productType').value;
             if (!type) {
                 document.getElementById('type-error').innerText = 'Please select a product type.';
                 isValid = false;
-            }
-
-            const config = productTypeConfig[type];
-            if (config) {
-                isValid = config.validate();
-                if (!isValid) {
-                    const specificFields = fieldsContainer.querySelectorAll('input');
-                    specificFields.forEach(field => {
-                        if (!field.value.trim()) {
-                            document.getElementById(`${field.id}-error`).innerText = `Please provide the ${field.previousElementSibling.innerText.toLowerCase()}.`;
-                        }
-                    });
+            } else {
+                const config = productTypeConfig[type];
+                if (config) {
+                    isValid = config.validate() && isValid;
                 }
             }
 

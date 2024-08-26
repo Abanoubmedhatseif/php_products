@@ -19,8 +19,7 @@ class DVD extends Product {
 
     public function getSpecificFields() {
         return "
-            <label for='size'>Size (MB)</label>
-            <input type='number' id='size' name='size' value='{$this->size}' required>
+            <p>Size: $this->size MB</p>
         ";
     }
 }

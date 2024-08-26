@@ -20,8 +20,7 @@ class Book extends Product {
 
     public function getSpecificFields() {
         return "
-            <label for='weight'>Weight (kg)</label>
-            <input type='number' id='weight' name='weight' value='{$this->weight}' required>
+            <p>Weight: $this->weight kg </p>
         ";
     }
 }

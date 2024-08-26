@@ -12,41 +12,48 @@ header('Content-Type: application/json');
 Include_once 'ProductManager.php';
 require_once 'Product.php';
 
+// ProductFactory to create products dynamically based on type
+class ProductFactory {
+    public static function createProduct($data) {
+        $className = $data['type'];
+        if (!class_exists($className)) {
+            throw new Exception("Invalid product type");
+        }
+        
+        $params = array_values($data);
+        $reflector = new ReflectionClass($className);
+        return $reflector->newInstanceArgs($params);
+    }
+}
+
 $productManager = new ProductManager();
 
 $data = [
     'type' => $_POST['type'],
+    'sku' => $_POST['sku'],
     'name' => $_POST['name'],
     'price' => $_POST['price'],
-    'sku' => $_POST['sku'],
 ];
 
-if ($data['type'] === 'Book') {
-    $data['weight'] = $_POST['weight'];
-    // Corrected parameter order: id, sku, name, price, weight
-    $product = new Book(null, $data['sku'], $data['name'], $data['price'], $data['weight']);
-} elseif ($data['type'] === 'DVD') {
-    $data['size'] = $_POST['size'];
-    // Corrected parameter order: id, sku, name, price, size
-    $product = new DVD(null, $data['sku'], $data['name'], $data['price'], $data['size']);
-} elseif ($data['type'] === 'Furniture') {
-    $data['length'] = $_POST['length'];
-    $data['width'] = $_POST['width'];
-    $data['height'] = $_POST['height'];
-    // Corrected parameter order: id, sku, name, price, length, width, height
-    $product = new Furniture(null, $data['sku'], $data['name'], $data['price'], $data['length'], $data['width'], $data['height']);
-} else {
-    echo json_encode(['status' => 'error', 'message' => 'Invalid product type']);
-    exit;
-}
+$specificData = array_filter($_POST, function($key) {
+    return !in_array($key, ['type', 'sku', 'name', 'price']);
+}, ARRAY_FILTER_USE_KEY);
 
-$response = $productManager->addProduct($product);
+$productData = array_merge($data, $specificData);
 
-if ($response['status'] === 'success') {
-    header('Location: products.php');
-    exit();
-} else {
-    header('Location: add_product.php?error=' . urlencode($response['message']));
+try {
+    $product = ProductFactory::createProduct($productData);
+    $response = $productManager->addProduct($product);
+
+    if ($response['status'] === 'success') {
+        header('Location: products.php');
+        exit();
+    } else {
+        header('Location: add_product.php?error=' . urlencode($response['message']));
+        exit();
+    }
+} catch (Exception $e) {
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     exit();
 }
 
