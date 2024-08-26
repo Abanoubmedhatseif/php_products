@@ -20,7 +20,6 @@ class Database {
         $price = $product->getPrice();
         $sku = $product->getSku();
     
-        // Set default values to null
         $weight = $size = $length = $width = $height = null;
     
         if ($type === 'Book') {
@@ -33,7 +32,6 @@ class Database {
             $height = $product->getHeight();
         }
     
-        // Check if SKU already exists
         $stmt = $this->connection->prepare("SELECT id FROM products WHERE sku = ?");
         if (!$stmt) {
             die("Prepare failed: " . $this->connection->error);
@@ -47,7 +45,6 @@ class Database {
         }
         $stmt->close();
     
-        // Insert new product
         $stmt = $this->connection->prepare(
             "INSERT INTO products (name, price, type, sku, weight, size, length, width, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
@@ -56,7 +53,6 @@ class Database {
             throw new Exception('Prepare failed: ' . $this->connection->error);
         }
     
-        // Bind parameters to the SQL statement
         $stmt->bind_param(
             "sdsssdddd",
             $name,
@@ -91,20 +87,26 @@ class Database {
         $result = $this->connection->query("SELECT * FROM products");
         $products = [];
     
-        while ($row = $result->fetch_assoc()) {
-            switch ($row['type']) {
-                case 'Book':
-                    $products[] = new Book($row['id'], $row['sku'], $row['name'], $row['price'], $row['weight']);
-                    break;
-                case 'DVD':
-                    $products[] = new DVD($row['id'], $row['sku'], $row['name'], $row['price'], $row['size']);
-                    break;
-                case 'Furniture':
-                    $products[] = new Furniture($row['id'], $row['sku'], $row['name'], $row['price'], $row['height'], $row['width'], $row['length']);
-                    break;
+        $typeToConstructor = [
+            'Book' => function($row) {
+                return new Book($row['id'], $row['sku'], $row['name'], $row['price'], $row['weight']);
+            },
+            'DVD' => function($row) {
+                return new DVD($row['id'], $row['sku'], $row['name'], $row['price'], $row['size']);
+            },
+            'Furniture' => function($row) {
+                return new Furniture($row['id'], $row['sku'], $row['name'], $row['price'], $row['height'], $row['width'], $row['length']);
             }
+        ];
+        
+        // Fetch and process rows
+        $products = [];
+        while ($row = $result->fetch_assoc()) {
+            $type = $row['type'];
+                $products[] = $typeToConstructor[$type]($row);
         }
-    
+        
+
         return $products;
     }
     
