@@ -1,4 +1,9 @@
 <?php
+require_once 'Product.php';
+require_once 'Book.php';
+require_once 'DVD.php';
+require_once 'Furniture.php';
+
 class Database {
     private $connection;
 
@@ -34,13 +39,13 @@ class Database {
             die("Prepare failed: " . $this->connection->error);
         }
 
-        $check_sql = "SELECT COUNT(*) as count FROM products WHERE sku = '$sku'";
-        $check_result = $this->connection->query($check_sql);
-        $row = $check_result->fetch_assoc();
-        if ($row['count'] > 0) {
-            // echo "Error: SKU '$sku' already exists.";
+        $stmt->bind_param("s", $sku);
+        $stmt->execute();
+        $stmt->store_result();
+        if ($stmt->num_rows > 0) {
             throw new Exception('SKU already exists in the database.');
         }
+        $stmt->close();
     
         // Insert new product
         $stmt = $this->connection->prepare(
@@ -89,19 +94,20 @@ class Database {
         while ($row = $result->fetch_assoc()) {
             switch ($row['type']) {
                 case 'Book':
-                    $products[] = new Book($row['id'], $row['name'], $row['price'], $row['type'], $row['sku'], $row['weight']);
+                    $products[] = new Book($row['id'], $row['sku'], $row['name'], $row['price'], $row['weight']);
                     break;
                 case 'DVD':
-                    $products[] = new DVD($row['id'], $row['name'], $row['price'], $row['type'], $row['sku'], $row['size']);
+                    $products[] = new DVD($row['id'], $row['sku'], $row['name'], $row['price'], $row['size']);
                     break;
                 case 'Furniture':
-                    $products[] = new Furniture($row['id'], $row['name'], $row['price'], $row['type'], $row['sku'], $row['length'], $row['width'], $row['height']);
+                    $products[] = new Furniture($row['id'], $row['sku'], $row['name'], $row['price'], $row['height'], $row['width'], $row['length']);
                     break;
             }
         }
     
         return $products;
     }
+    
     
     public function deleteProducts(array $ids) {
         if (empty($ids)) {
