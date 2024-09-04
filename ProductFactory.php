@@ -4,26 +4,34 @@ require_once 'DVD.php';
 require_once 'Furniture.php';
 
 class ProductFactory {
-    private static $typeToConstructor = [
-        'Book' => 'createBook',
-        'DVD' => 'createDVD',
-        'Furniture' => 'createFurniture',
-    ];
+    private $typeToConstructor;
 
-    public static function createProduct($type, $sku, $name, $price, $additionalAttributes) {
-        $constructor = self::$typeToConstructor[$type];
-        return self::$constructor($sku, $name, $price, $additionalAttributes);
+    public function __construct() {
+        $this->typeToConstructor = [
+            'Book' => [$this, 'createBook'],
+            'DVD' => [$this, 'createDVD'],
+            'Furniture' => [$this, 'createFurniture'],
+        ];
     }
 
-    private static function createBook($sku, $name, $price, $additionalAttributes) {
+    public function createProduct($type, $sku, $name, $price, $additionalAttributes) {
+        if (!array_key_exists($type, $this->typeToConstructor)) {
+            throw new InvalidArgumentException("Invalid product type: $type");
+        }
+
+        $constructor = $this->typeToConstructor[$type];
+        return $constructor($sku, $name, $price, $additionalAttributes);
+    }
+
+    private function createBook($sku, $name, $price, $additionalAttributes) {
         return new Book($sku, $name, $price, $additionalAttributes['weight']);
     }
 
-    private static function createDVD($sku, $name, $price, $additionalAttributes) {
+    private function createDVD($sku, $name, $price, $additionalAttributes) {
         return new DVD($sku, $name, $price, $additionalAttributes['size']);
     }
 
-    private static function createFurniture($sku, $name, $price, $additionalAttributes) {
+    private function createFurniture($sku, $name, $price, $additionalAttributes) {
         return new Furniture($sku, $name, $price, $additionalAttributes['height'], $additionalAttributes['width'], $additionalAttributes['length']);
     }
 }
