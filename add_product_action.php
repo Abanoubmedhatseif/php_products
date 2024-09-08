@@ -34,7 +34,6 @@ try {
         $specificData
     );
     
-    // Add the product using the ProductManager
     $response = $productManager->addProduct($product);
 
     if ($response['status'] === 'success') {
@@ -48,4 +47,3 @@ try {
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     exit();
 }
-?>
