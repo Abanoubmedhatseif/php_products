@@ -32,3 +32,6 @@ abstract class Product {
     abstract public function getSpecificFields();
     abstract public function getType();
 }
+
+
+?>
